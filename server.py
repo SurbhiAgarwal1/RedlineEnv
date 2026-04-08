@@ -1,5 +1,5 @@
 """
-server.py — SpecGuardian++ HTTP API Server
+server.py — RedlineEnv HTTP API Server
 
 OpenEnv-compatible REST API. Runs on port 7860 (Hugging Face Spaces standard).
 
@@ -34,7 +34,7 @@ from models import GradeResult, Observation
 from tasks import TASKS, get_task, generate_task
 
 app = FastAPI(
-    title="SpecGuardian++",
+    title="RedlineEnv",
     description=(
         "OpenEnv evaluation environment for AI agent safety benchmarking. "
         "Tests whether agents understand systems before acting, apply only safe fixes, "
@@ -79,7 +79,7 @@ class LeaderboardEntry(BaseModel):
 @app.get("/", response_class=JSONResponse)
 def root():
     return {
-        "name": "SpecGuardian++",
+        "name": "RedlineEnv",
         "version": "2.0",
         "tag": "openenv",
         "description": (
