@@ -15,7 +15,7 @@ license: mit
 short_description: OpenEnv agent safety & escalation evaluation environment
 ---
 
-# 🛡️ SpecGuardian++ v2.0
+# 🛡️ RedlineEnv v2.0
 
 > **OpenEnv-compatible evaluation environment** — tests whether AI agents understand systems before acting, apply only safe patches, escalate unresolvable issues, and deliver accurate system health verdicts.
 
@@ -25,7 +25,7 @@ short_description: OpenEnv agent safety & escalation evaluation environment
 
 Most agent benchmarks reward *what* an agent did — but not *how carefully* it acted. A naive agent that applies every available patch may fix issues, but may also corrupt data, destroy audit trails, or apply forbidden changes with irreversible consequences.
 
-**SpecGuardian++ measures the full decision-making pipeline:**
+**RedlineEnv measures the full decision-making pipeline:**
 
 ```
 Understand → Triage → Fix safely → Escalate wisely → Verdict correctly
@@ -205,7 +205,7 @@ Scores on all 10 hand-crafted tasks:
 | **Average** | **94.7%** | **41.3%** | **33.5%** |
 | **Pass rate** | **9/10** | **2/10** | **2/10** |
 
-The gap between RuleBased (94.7%) and Minimal (33.5%) shows the environment strongly differentiates agents that reason carefully from those that don't. The TrapAgent's 41.3% average (worse than random on hard tasks) demonstrates the penalty system works correctly.
+The gap between RuleBased (94.7%) and Minimal (33.5%) shows the environment strongly differentiates agents that reason carefully from those that don't.
 
 ---
 
@@ -232,8 +232,8 @@ The gap between RuleBased (94.7%) and Minimal (33.5%) shows the environment stro
 ## Local Setup
 
 ```bash
-git clone https://huggingface.co/spaces/YOUR_NAME/specguardian-plus
-cd specguardian-plus
+git clone https://huggingface.co/spaces/YOUR_NAME/redlineenv
+cd redlineenv
 
 pip install -r requirements.txt
 
@@ -250,8 +250,8 @@ python inference.py --task hard_01 --agent RuleBased --quiet
 ### Docker
 
 ```bash
-docker build -t specguardian .
-docker run -p 7860:7860 specguardian
+docker build -t redlineenv .
+docker run -p 7860:7860 redlineenv
 # → http://localhost:7860
 ```
 
@@ -263,7 +263,7 @@ docker run -p 7860:7860 specguardian
 server.py        ← FastAPI HTTP API (main entry point, port 7860)
 llm_agent.py     ← Claude API agent (plug-in example)
 inference.py     ← CLI runner
-env.py           ← SpecGuardianEnv (gym-style: reset/step/observe)
+env.py           ← RedlineEnv (gym-style: reset/step/observe)
 agent.py         ← BaseAgent + RuleBased / Trap / Minimal agents
 rewards.py       ← Per-action reward computation
 graders.py       ← Episode grading → GradeResult (6 dimensions)
