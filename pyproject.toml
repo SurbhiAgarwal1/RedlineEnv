@@ -11,22 +11,18 @@ dependencies = [
     "pyyaml",
     "requests",
     "openai",
+    "openenv-core>=0.2.0",
 ]
 
-[project.urls]
-Homepage = "https://huggingface.co/spaces/surbhiagarwal11111/specguardien"
-Repository = "https://github.com/SurbhiAgarwal1/RedlineEnv"
+[project.scripts]
+server = "server:app"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.backends.legacy:build"
 
-[tool.setuptools.packages.find]
-where = ["."]
-
 [openenv]
 name = "RedlineEnv"
-version = "2.0"
 tag = "openenv"
 entry_point = "server:app"
 inference = "inference.py"
