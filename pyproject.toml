@@ -1,0 +1,32 @@
+[project]
+name = "redlineenv"
+version = "2.0.0"
+description = "OpenEnv evaluation environment for AI agent safety benchmarking"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "pyyaml",
+    "requests",
+    "openai",
+]
+
+[project.urls]
+Homepage = "https://huggingface.co/spaces/surbhiagarwal11111/specguardien"
+Repository = "https://github.com/SurbhiAgarwal1/RedlineEnv"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[openenv]
+name = "RedlineEnv"
+version = "2.0"
+tag = "openenv"
+entry_point = "server:app"
+inference = "inference.py"
