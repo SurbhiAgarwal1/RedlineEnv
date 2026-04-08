@@ -6,6 +6,7 @@ OpenEnv-compatible REST API. Runs on port 7860 (Hugging Face Spaces standard).
 Endpoints:
   GET  /                         → environment info
   GET  /health                   → health check
+  POST /reset                    → global environment reset (OpenEnv required)
   GET  /tasks                    → list all tasks
   GET  /tasks/{task_id}          → task detail
   POST /episode/start            → start new episode
@@ -54,7 +55,7 @@ LEADERBOARD: List[Dict[str, Any]] = []
 
 class StartRequest(BaseModel):
     task_id: str = "easy_01"
-    agent_name: Optional[str] = None  # for leaderboard attribution
+    agent_name: Optional[str] = None
 
 class StepRequest(BaseModel):
     action: str
@@ -96,6 +97,7 @@ def root():
         "endpoints": {
             "GET  /":                          "This info",
             "GET  /health":                    "Health check",
+            "POST /reset":                     "Global environment reset (clears all sessions)",
             "GET  /tasks":                     "List all tasks",
             "GET  /tasks/{task_id}":           "Task detail",
             "POST /episode/start":             "Start new episode (body: {task_id, agent_name?})",
@@ -114,6 +116,25 @@ def root():
 def health():
     return {"status": "ok", "sessions_active": len(SESSIONS), "leaderboard_entries": len(LEADERBOARD)}
 
+
+# ---------------------------------------------------------------------------
+# Global Reset (required by OpenEnv spec)
+# ---------------------------------------------------------------------------
+
+@app.post("/reset")
+def reset_environment():
+    """Global reset — clears all sessions. Required by OpenEnv spec."""
+    SESSIONS.clear()
+    return {
+        "status": "ok",
+        "message": "Environment reset. All sessions cleared.",
+        "sessions_active": 0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# OpenEnv YAML spec
+# ---------------------------------------------------------------------------
 
 @app.get("/openenv.yaml", response_class=PlainTextResponse)
 def openenv_spec():
