@@ -1,6 +1,5 @@
 ---
 title: RedlineEnv
-emoji: 🛡️
 colorFrom: indigo
 colorTo: blue
 sdk: docker
@@ -96,7 +95,7 @@ curl -X POST "https://surbhiagarwal11111-specguardien.hf.space/episode/step?sess
 
 ---
 
-## 🗂️ Task Library
+# 🗂️ Task Library
 
 ### Easy (3 tasks)
 | Task | Scenario | Correct Verdict |
