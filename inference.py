@@ -1,10 +1,5 @@
 """
 inference.py — RedlineEnv hackathon-compliant agent runner.
-
-Follows the OpenEnv submission spec:
-  - Uses API_BASE_URL, MODEL_NAME, HF_TOKEN env vars
-  - Uses OpenAI client
-  - Structured stdout logs (START/STEP/END)
 """
 from __future__ import annotations
 
@@ -15,31 +10,24 @@ import requests
 from openai import OpenAI
 
 # ---------------------------------------------------------------------------
-# Environment variables (required by hackathon checklist)
+# Environment variables
 # ---------------------------------------------------------------------------
-API_BASE_URL = os.getenv("API_BASE_URL", "<your-active-environment-url>")
-MODEL_NAME   = os.getenv("MODEL_NAME",   "<your-active-model>")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://surbhiagarwal11111-specguardien.hf.space")
+MODEL_NAME   = os.getenv("MODEL_NAME", "meta-llama/Llama-3.3-70B-Instruct")
 HF_TOKEN     = os.getenv("HF_TOKEN")
 
-# Optional — if you use from_docker_image():
-LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
-
-# ---------------------------------------------------------------------------
-# OpenAI client (required by hackathon checklist)
-# ---------------------------------------------------------------------------
 client = OpenAI(
     base_url=API_BASE_URL,
     api_key=HF_TOKEN or "none",
 )
 
-# ---------------------------------------------------------------------------
-# Environment base URL (your deployed HF Space)
-# ---------------------------------------------------------------------------
-ENV_URL = os.getenv("ENV_URL", "https://surbhiagarwal11111-specguardien.hf.space")
+ENV_URL    = os.getenv("ENV_URL", "https://surbhiagarwal11111-specguardien.hf.space")
+AGENT_NAME = os.getenv("AGENT_NAME", "llm-agent")
 
-TASK_ID     = os.getenv("TASK_ID", "medium_01")
-AGENT_NAME  = os.getenv("AGENT_NAME", "llm-agent")
-
+# ---------------------------------------------------------------------------
+# ALL tasks to run (must be 3+)
+# ---------------------------------------------------------------------------
+TASKS = ["easy_01", "medium_01", "hard_01"]
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -101,7 +89,6 @@ def get_llm_action(obs: dict) -> tuple[str, dict]:
         temperature=0.0,
     )
     text = response.choices[0].message.content.strip()
-    # Strip markdown fences if present
     text = text.replace("```json", "").replace("```", "").strip()
     parsed = json.loads(text)
     return parsed["action"], parsed.get("args", {})
@@ -111,49 +98,60 @@ def get_llm_action(obs: dict) -> tuple[str, dict]:
 # Main runner
 # ---------------------------------------------------------------------------
 
-def main():
-    # START log (required format)
-    print(json.dumps({"type": "START", "task_id": TASK_ID, "agent": AGENT_NAME}))
-    sys.stdout.flush()
+def run_task(task_id: str):
+    # ✅ CORRECT FORMAT: [START] task=NAME
+    print(f"[START] task={task_id}", flush=True)
 
-    # Start episode
-    episode = start_episode(TASK_ID, AGENT_NAME)
-    session_id = episode["session_id"]
-    obs = episode["observation"]
+    try:
+        episode = start_episode(task_id, AGENT_NAME)
+        session_id = episode["session_id"]
+        obs = episode["observation"]
+    except Exception as e:
+        print(f"[STEP] step=1 reward=0.0", flush=True)
+        print(f"[END] task={task_id} score=0.0 steps=1", flush=True)
+        return
 
     step = 0
+    total_reward = 0.0
+
     while not obs.get("done", False):
         step += 1
 
         try:
             action, args = get_llm_action(obs)
-        except Exception as e:
-            # Fallback: submit verdict if LLM fails
+        except Exception:
             action, args = "submit_verdict", {"verdict": "system_degraded", "confidence": 0.5}
 
-        # STEP log (required format)
-        print(json.dumps({
-            "type": "STEP",
-            "step": step,
-            "action": action,
-            "args": args,
-        }))
-        sys.stdout.flush()
+        try:
+            result = take_step(session_id, action, args)
+        except Exception:
+            # ✅ CORRECT FORMAT: [STEP] step=N reward=R
+            print(f"[STEP] step={step} reward=0.0", flush=True)
+            break
 
-        result = take_step(session_id, action, args)
+        reward = float(result.get("reward", 0.0))
+        total_reward += reward
+
+        # ✅ CORRECT FORMAT: [STEP] step=N reward=R
+        print(f"[STEP] step={step} reward={reward:.2f}", flush=True)
+
         obs = result.get("observation", {})
 
         if result.get("done") or obs.get("done"):
             break
 
-    # END log (required format)
-    print(json.dumps({
-        "type": "END",
-        "session_id": session_id,
-        "steps": step,
-        "task_id": TASK_ID,
-    }))
-    sys.stdout.flush()
+        if step >= 20:  # safety cap
+            break
+
+    score = total_reward / max(step, 1)
+
+    # ✅ CORRECT FORMAT: [END] task=NAME score=S steps=N
+    print(f"[END] task={task_id} score={score:.2f} steps={step}", flush=True)
+
+
+def main():
+    for task_id in TASKS:
+        run_task(task_id)
 
 
 if __name__ == "__main__":
